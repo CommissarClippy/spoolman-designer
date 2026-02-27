@@ -11,6 +11,8 @@ Generate printable 40x30mm thermal labels for your 3D printing filament spools. 
 
 Output as PNG images or as AML files compatible with the Labelife/Phomemo M110 thermal printer.
 
+![Example label](example.png)
+
 ## Requirements
 
 - Python 3.11+
