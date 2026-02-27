@@ -1,0 +1,7 @@
+# Copy to config.toml and adjust to your setup.
+# All keys are optional.
+
+spoolman_url = "http://localhost:7912"
+output_format = "aml"   # "aml" or "png"
+output_dir = "output"
+use_logo = false      # use manufacturer logo instead of text brand name
