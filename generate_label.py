@@ -208,12 +208,14 @@ def sanitize_filename(name):
 def format_range(value):
     """Format an integer_range extra field value (e.g. [230, 250] → '230-250')."""
     if isinstance(value, list) and len(value) == 2:
-        return f"{value[0]}-{value[1]}"
-    s = str(value).strip('"')
-    m = re.match(r"\[(\d+),\s*(\d+)\]", s)
-    if m:
-        return f"{m.group(1)}-{m.group(2)}"
-    return s
+        lo, hi = value
+    else:
+        s = str(value).strip('"')
+        m = re.match(r"\[(\d+),\s*(\d+)\]", s)
+        if not m:
+            return s
+        lo, hi = m.groups()
+    return str(lo) if str(lo) == str(hi) else f"{lo}-{hi}"
 
 
 LOGO_BASE_URL = "https://raw.githubusercontent.com/MarksMakerSpace/filament-profiles/main/logos/label"
@@ -281,7 +283,7 @@ def generate_label(spool_data, base_url, spool_id, scale=1.0, use_logo=False):
     printing_speed = extra.get("printing_speed")
 
     # Compose material bar text
-    bar_text = f"{material}/{name}" if name else material
+    bar_text = material
 
     # Create image
     img = Image.new("RGB", (int(LABEL_W * s), int(LABEL_H * s)), "white")
@@ -297,12 +299,13 @@ def generate_label(spool_data, base_url, spool_id, scale=1.0, use_logo=False):
             max_h = int(40 * s)
             logo_img = logo_img.convert("RGBA")
             lw, lh = logo_img.size
+            # Scale up or down so the logo fills the brand area
             ratio = min(max_w / lw, max_h / lh)
-            if ratio < 1:
-                logo_img = logo_img.resize(
-                    (int(lw * ratio), int(lh * ratio)), Image.LANCZOS,
-                )
-            img.paste(logo_img, (int(BRAND_X * s), int(BRAND_Y * s)), logo_img)
+            logo_img = logo_img.resize(
+                (max(1, int(lw * ratio)), max(1, int(lh * ratio))), Image.LANCZOS,
+            )
+            logo_y = int(BRAND_Y * s) + (max_h - logo_img.height) // 2
+            img.paste(logo_img, (int(BRAND_X * s), logo_y), logo_img)
             logo_used = True
 
     if not logo_used:
@@ -341,7 +344,11 @@ def generate_label(spool_data, base_url, spool_id, scale=1.0, use_logo=False):
 
     # -- Color name --
     color_name = name or material
-    color_font = load_font(bold=False, size=int(COLOR_FONT_SIZE * s))
+    color_font = auto_shrink_font(
+        draw, color_name, bold=False,
+        max_width=int((LABEL_W - COLOR_X * 2) * s),
+        start_size=int(COLOR_FONT_SIZE * s), min_size=int(12 * s),
+    )
     draw.text((int(COLOR_X * s), int(COLOR_Y * s)), color_name, fill="black", font=color_font)
 
     # -- QR code --
@@ -358,12 +365,10 @@ def generate_label(spool_data, base_url, spool_id, scale=1.0, use_logo=False):
         props.append(("Bed:", f"{format_range(bed_temp)}\u00b0C"))
     if printing_speed:
         props.append(("Speed:", f"{format_range(printing_speed)} mm/s"))
-    if drying_temp and drying_time:
-        props.append(("Drying:", f"{format_range(drying_temp)}\u00b0C / {drying_time}h"))
-    elif drying_temp:
+    if drying_temp:
         props.append(("Drying:", f"{format_range(drying_temp)}\u00b0C"))
-    elif drying_time:
-        props.append(("Drying:", f"{drying_time}h"))
+    if drying_time:
+        props.append(("Time:", f"{format_range(drying_time)}h"))
 
     for i, (label, value) in enumerate(props):
         y = int((PROP_Y_START + i * PROP_LINE_H) * s)
