@@ -65,6 +65,7 @@ Everything lives in `generate_label.py`. Key concepts:
   | `bambu_filament_type`| text         | —    |
 - **Font loading**: Cross-platform fallback chain (Helvetica on macOS, DejaVu Sans on Linux, Arial on Windows).
 - **Auto-shrink**: Brand name and material bar text auto-shrink to fit their bounding boxes.
+- **Hardware labels**: `hardware` (alias `hw`) subcommand renders labels for screws, bolts, nuts, washers, inserts and standoffs on the same 40x30mm layout. Data comes from Homebox (`/api/v1/entities/{id}`, falling back to `/items/{id}` for pre-0.27 versions) via custom fields listed in `HB_FIELD_MAP` (see README), or from CLI flags. Icons are drawn with Pillow primitives in `draw_side_profile` / `draw_top_view`. Auth: `HOMEBOX_TOKEN` env (API key) or `HOMEBOX_USERNAME`/`HOMEBOX_PASSWORD`. Config keys: `homebox_url`, `homebox_tag`, `hardware_qr` (`homebox`/`supplier`/`none`).
 - **Logo support**: `--logo` flag replaces text brand name with manufacturer logo. Logos are fetched from [filament-profiles](https://github.com/MarksMakerSpace/filament-profiles) and cached locally in `logos/` (gitignored).
 
 ## Environment
