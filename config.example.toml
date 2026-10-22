@@ -5,3 +5,10 @@ spoolman_url = "http://localhost:7912"
 output_format = "aml"   # "aml" or "png"
 output_dir = "output"
 use_logo = false      # use manufacturer logo instead of text brand name
+
+# Hardware labels (Homebox)
+homebox_url = "http://localhost:7745"
+homebox_tag = "Hardware"     # only list items with this tag
+hardware_qr = "homebox"      # "homebox", "supplier" or "none"
+# Credentials come from the environment, not this file:
+#   HOMEBOX_TOKEN (API key), or HOMEBOX_USERNAME + HOMEBOX_PASSWORD
