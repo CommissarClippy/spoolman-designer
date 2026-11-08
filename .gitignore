@@ -3,6 +3,7 @@
 __pycache__/
 *.pyc
 spool_*.png
+hw_*.png
 config.toml
 output/
 logos/
