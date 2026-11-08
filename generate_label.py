@@ -1005,7 +1005,8 @@ def _homebox_get(session, base_url, path):
 
 def fetch_homebox_item(session, base_url, ref):
     """Fetch an item by UUID or asset ID (e.g. '000-042' or '42')."""
-    if re.fullmatch(r"[\d\-]+", ref):
+    is_uuid = re.fullmatch(r"[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", ref)
+    if not is_uuid and re.fullmatch(r"[\d\-]+", ref):
         resp = _homebox_get(session, base_url, f"/assets/{ref}")
         hits = resp.json().get("items", []) if resp.status_code == 200 else []
         if not hits:
@@ -1022,8 +1023,8 @@ def fetch_homebox_item(session, base_url, ref):
     sys.exit(1)
 
 
-def list_homebox_items(session, base_url, tag=None):
-    """Print Homebox items, optionally only those with the given tag."""
+def fetch_homebox_items(session, base_url, tag=None):
+    """Return Homebox item summaries, optionally only those with the given tag."""
     params = {"pageSize": 500, "orderBy": "assetId"}
     if tag:
         tag_id = None
@@ -1045,8 +1046,12 @@ def list_homebox_items(session, base_url, tag=None):
     if resp.status_code != 200:
         print(f"Error: Homebox returned status {resp.status_code}", file=sys.stderr)
         sys.exit(1)
+    return resp.json().get("items", [])
 
-    items = resp.json().get("items", [])
+
+def list_homebox_items(session, base_url, tag=None):
+    """Print Homebox items, optionally only those with the given tag."""
+    items = fetch_homebox_items(session, base_url, tag)
     if not items:
         print("No items found.")
         return
@@ -1246,8 +1251,12 @@ def main():
     )
     hw_parser.add_argument("--list", action="store_true", help="List Homebox items and exit")
     hw_parser.add_argument(
+        "--all", action="store_true",
+        help="Generate a label for every Homebox item with the tag (default tag: Hardware)",
+    )
+    hw_parser.add_argument(
         "--tag", default=config.get("homebox_tag"),
-        help="Only list Homebox items with this tag (default: homebox_tag in config)",
+        help="Only list/generate Homebox items with this tag (default: homebox_tag in config)",
     )
     hw_parser.add_argument(
         "--homebox-url",
@@ -1324,19 +1333,44 @@ def main():
 def run_hardware(args, output_dir):
     """Handle the `hardware` subcommand."""
     hb_url = args.homebox_url.rstrip("/")
-    hw = {}
-    if args.item or args.list:
-        session = homebox_session(
-            hb_url,
-            token=os.environ.get("HOMEBOX_TOKEN"),
-            username=os.environ.get("HOMEBOX_USERNAME"),
-            password=os.environ.get("HOMEBOX_PASSWORD"),
-        )
-        if args.list:
-            list_homebox_items(session, hb_url, args.tag)
-            return
-        hw = homebox_to_hardware(fetch_homebox_item(session, hb_url, args.item))
+    use_aml = args.aml and not args.png
+    if not (args.item or args.list or args.all):
+        render_hardware(args, {}, hb_url, output_dir, use_aml)
+        return
 
+    session = homebox_session(
+        hb_url,
+        token=os.environ.get("HOMEBOX_TOKEN"),
+        username=os.environ.get("HOMEBOX_USERNAME"),
+        password=os.environ.get("HOMEBOX_PASSWORD"),
+    )
+    if args.list:
+        list_homebox_items(session, hb_url, args.tag)
+        return
+    if args.all:
+        if args.output:
+            print("Error: --output can't be used with --all", file=sys.stderr)
+            sys.exit(1)
+        # Never label the whole inventory by accident: always filter on a tag
+        items = fetch_homebox_items(session, hb_url, args.tag or "Hardware")
+        if not items:
+            print("No items found.")
+            return
+        for item in items:
+            hw = homebox_to_hardware(fetch_homebox_item(session, hb_url, item["id"]))
+            if not render_hardware(args, hw, hb_url, output_dir, use_aml, strict=False):
+                print(f"Skipped {item.get('assetId') or item['id']} "
+                      f"({item.get('name', '')}): no size", file=sys.stderr)
+        return
+    hw = homebox_to_hardware(fetch_homebox_item(session, hb_url, args.item))
+    render_hardware(args, hw, hb_url, output_dir, use_aml)
+
+
+def render_hardware(args, hw, hb_url, output_dir, use_aml, strict=True):
+    """Apply CLI overrides and QR choice to a hardware dict and save its label.
+
+    Returns False (or exits when strict) if the item has no size.
+    """
     # Flags override whatever Homebox returned
     for key in ("type", "size", "length", "head", "drive", "drive_size", "tip", "variant",
                 "pitch", "diameter", "material", "finish", "name", "note"):
@@ -1344,6 +1378,8 @@ def run_hardware(args, output_dir):
         if value is not None:
             hw[key] = value
     if not hw.get("size"):
+        if not strict:
+            return False
         print("Error: No size found; set a Size field in Homebox or pass --size", file=sys.stderr)
         sys.exit(1)
 
@@ -1360,8 +1396,9 @@ def run_hardware(args, output_dir):
     img, title, bar_text = generate_hardware_label(hw, scale=AML_SCALE)
     save_label(
         img, args.output or hardware_filename(hw, title, bar_text),
-        explicit=bool(args.output), output_dir=output_dir, use_aml=args.aml and not args.png,
+        explicit=bool(args.output), output_dir=output_dir, use_aml=use_aml,
     )
+    return True
 
 
 def save_label(img, basename, explicit, output_dir, use_aml):

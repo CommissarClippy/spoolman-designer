@@ -124,7 +124,10 @@ export HOMEBOX_TOKEN=...            # Homebox → Profile → API keys
 python generate_label.py hardware --list            # list items (filtered by homebox_tag)
 python generate_label.py hardware 000-042 --png     # by asset ID (or item UUID)
 python generate_label.py hw 000-042 --qr supplier   # QR straight to the supplier page
+python generate_label.py hw --all --aml             # a label for every item tagged "Hardware"
 ```
+
+`--all` uses `--tag` / `homebox_tag` when set and the `Hardware` tag otherwise, so it never labels your whole inventory. Items without a size are skipped with a warning. Files are named after the asset ID (`hw_000-042.aml`) and go to `output_dir` when that is configured.
 
 Without an API key (Homebox before 0.27), set `HOMEBOX_USERNAME` and `HOMEBOX_PASSWORD` instead.
 
