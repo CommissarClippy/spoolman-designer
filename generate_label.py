@@ -459,7 +459,7 @@ HW_TIP_ALIASES = {
 }
 HW_POINT_WORDS = ("point", "pointed", "wood", "self-tapping", "tapping", "chipboard",
                   "punt", "hout", "houtschroef", "spaanplaat", "spaanplaatschroef",
-                  "parker", "plaatschroef")
+                  "universeel", "universeelschroef", "parker", "plaatschroef")
 
 # Label text per language. Screw/bolt descriptions are formatted with {t},
 # the lowercase type name.
@@ -533,7 +533,10 @@ def normalize_hardware(item):
         if drive is None:
             drive = "external" if hw["head"] in ("hex", "flange") else "hex"
         hw["drive"] = drive
-        hw["tip"] = _canon(hw.get("tip"), HW_TIP_ALIASES) or "flat"
+        # Without a Tip field: metric (M3, M5) is machine thread with a flat end,
+        # anything else (Ø4.5 wood/universal screws) is pointed.
+        metric = str(hw.get("size", "")).strip().lower().startswith("m")
+        hw["tip"] = _canon(hw.get("tip"), HW_TIP_ALIASES) or ("flat" if metric else "point")
     else:
         hw.pop("head", None)
         hw.pop("drive", None)

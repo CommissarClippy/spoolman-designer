@@ -143,7 +143,7 @@ Hardware labels are in Dutch by default (`Cilinderkopschroef`, `Zeskantbout`, `B
 
 ### Icons
 
-Bolts are drawn with a plain shank section and a nut on the thread, and screws are threaded up to the head. The end of a screw or bolt is flat by default (machine thread). Set `Tip` to `point` for wood, chipboard and self-tapping screws. Names containing words like "spaanplaat", "hout", "parker" or "wood" get a point automatically.
+Bolts are drawn with a plain shank section and a nut on the thread, and screws are threaded up to the head. The end of a screw or bolt is flat by default (machine thread). Without a `Tip` field, metric sizes (`M5`) get a flat end and other sizes (`Ø4.5` wood and universal screws) get a point, as do names containing words like "spaanplaat", "universeel", "hout" or "wood". Set `Tip` to `point` or `flat` to override.
 
 ### Homebox custom fields
 
