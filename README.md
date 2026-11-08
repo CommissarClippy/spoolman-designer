@@ -113,7 +113,7 @@ The following Bambu Lab-specific fields are also recognized:
 
 ## Hardware Labels
 
-The same 40x30mm label also works for screws, bolts, nuts, washers, heat-set inserts and standoffs. A hardware label shows the size (`M3 × 12`), a description bar (`Socket cap screw`), a side-view icon of the part with its head shape, a top-view icon of the drive, up to four property lines without labels (`Inbus 4`, `12.9 staal`, `zwart geoxideerd`, `DIN 912`) so long values stay readable, and an optional QR code.
+The same 40x30mm label also works for screws, bolts, nuts, washers, heat-set inserts and standoffs. A hardware label shows the size (`M3 × 12`), a description bar (`Socket cap screw`), a side-view icon of the part with its head shape, a top-view icon of the drive, up to four property lines without labels (`Verzonken kop`, `Torx T20`, `12.9 staal`, `zwart geoxideerd`) so long values stay readable, and an optional QR code.
 
 ![Example hardware labels](example_hardware.png)
 
@@ -132,7 +132,7 @@ You can also skip Homebox and pass everything as flags:
 
 ```bash
 python generate_label.py hw --type screw --size M3 --length 12 --head cap --drive hex \
-    --material "A2 stainless" --standard "DIN 912" --qr-url https://example.com/m3-screws
+    --material "A2 stainless" --qr-url https://example.com/m3-screws
 ```
 
 Flags also override what Homebox returns. Run `python generate_label.py hw --help` for the full list.
@@ -154,7 +154,7 @@ Add these as text fields on your hardware items. All are optional, and field nam
 | `Type` (Soort) | screw, bolt, nut, washer, insert, standoff | Icon and description |
 | `Size` (Maat) | M3, M2.5 | Title |
 | `Length` (Lengte) | 12 | Title (screws, bolts, inserts, standoffs) |
-| `Head` (Kop) | cap, button, pan, countersunk (sunken/flat), cheese, hex, flange | Side icon and description |
+| `Head` (Kop) | cap, button, pan, countersunk (sunken/flat), cheese, hex, flange | Side icon, description, and its own line when the description doesn't name it |
 | `Drive` (Aandrijving) | hex (allen), torx, phillips, pozidriv, slotted (flat), square | Top icon and properties |
 | `Drive size` (Bitmaat, Sleutelmaat) | 2.5, T20, PH2, or 13 for a hex head | Properties |
 | `Tip` (Punt) | flat (default), point | Side icon |
@@ -163,7 +163,6 @@ Add these as text fields on your hardware items. All are optional, and field nam
 | `Diameter` (Buitendiameter) | 4.6 (outer diameter of washers, inserts) | Properties |
 | `Material` (Materiaal) | A2 stainless, 12.9 steel, brass, nylon | Properties |
 | `Finish` (Afwerking) | black oxide, zinc (zwart, verzinkt) | Properties |
-| `Standard` (Norm) | DIN 912, ISO 7380 | Properties |
 | `Supplier URL` (Leverancier URL) | link to the product page | QR with `--qr supplier` |
 | `Label text` (Label tekst) | overrides the description bar | Description |
 | `Label note` (Label notitie) | short extra line | Properties |

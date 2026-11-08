@@ -470,6 +470,10 @@ HW_TEXT = {
                   "pan": "Pan head {t}", "countersunk": "Countersunk {t}",
                   "cheese": "Cheese head {t}", "hex": "Hex head {t}",
                   "flange": "Flange head {t}"},
+        # Head shape as its own property line
+        "head_lines": {"cap": "Socket cap", "button": "Button head", "pan": "Pan head",
+                       "countersunk": "Countersunk", "cheese": "Cheese head",
+                       "hex": "Hex head", "flange": "Flange head"},
         "drives": {"phillips": "Phillips", "pozidriv": "Pozidriv", "slotted": "Slotted",
                    "hex": "Hex", "torx": "Torx", "square": "Square",
                    "external": "External hex"},
@@ -491,6 +495,9 @@ HW_TEXT = {
                   "pan": "Lenskop{t}", "countersunk": "Verzonken {t}",
                   "cheese": "Lage cilinderkop{t}", "hex": "Zeskant{t}",
                   "flange": "Flens{t}"},
+        "head_lines": {"cap": "Cilinderkop", "button": "Bolkop", "pan": "Lenskop",
+                       "countersunk": "Verzonken kop", "cheese": "Lage cilinderkop",
+                       "hex": "Zeskantkop", "flange": "Flenskop"},
         "drives": {"phillips": "Kruiskop", "pozidriv": "Pozidriv", "slotted": "Sleuf",
                    "hex": "Inbus", "torx": "Torx", "square": "Vierkant",
                    "external": "Zeskant"},
@@ -592,6 +599,11 @@ def hardware_properties(hw):
     prefix = text["props"]
     props = []
     if hw["type"] in ("screw", "bolt"):
+        # Head shape, unless the bar already names it ("Cilinderkopschroef")
+        head = text["head_lines"].get(hw["head"], hw["head"].title())
+        stem = re.sub(r"(kop| head)$", "", head.split()[0].lower())
+        if stem not in hardware_description(hw).lower():
+            props.append(head)
         drive = text["drives"].get(hw["drive"], hw["drive"].title())
         if hw.get("drive_size"):
             size = _fmt_num(hw["drive_size"])
@@ -605,7 +617,7 @@ def hardware_properties(hw):
         props.append(f"{prefix['pitch']} {_fmt_num(hw['pitch'])} mm")
     if hw.get("diameter"):
         props.append(f"{prefix['diameter']} {_fmt_num(hw['diameter'])} mm")
-    for key in ("material", "finish", "standard", "note"):
+    for key in ("material", "finish", "note"):
         if hw.get(key):
             props.append(str(hw[key]))
     return props
@@ -921,7 +933,6 @@ HB_FIELD_MAP = {
     "diameter": "diameter", "od": "diameter", "outer_diameter": "diameter",
     "material": "material", "grade": "material",
     "finish": "finish",
-    "standard": "standard", "din": "standard", "iso": "standard",
     "supplier_url": "supplier_url", "source_url": "supplier_url", "url": "supplier_url",
     "tip": "tip", "end": "tip",
     "label_text": "name",
@@ -937,7 +948,6 @@ HB_FIELD_MAP = {
     "buitendiameter": "diameter",
     "materiaal": "material",
     "afwerking": "finish", "kleur": "finish",
-    "norm": "standard",
     "punt": "tip",
     "leverancier_url": "supplier_url", "bron_url": "supplier_url", "link": "supplier_url",
     "label_tekst": "name",
@@ -1263,7 +1273,6 @@ def main():
         ("--diameter", "Outer diameter in mm (washers, inserts)"),
         ("--material", "e.g. A2 stainless, 12.9 steel"),
         ("--finish", "e.g. black oxide, zinc"),
-        ("--standard", "e.g. DIN 912"),
         ("--name", "Override the text in the black bar"),
         ("--note", "Short extra line on the label"),
     ):
@@ -1330,7 +1339,7 @@ def run_hardware(args, output_dir):
 
     # Flags override whatever Homebox returned
     for key in ("type", "size", "length", "head", "drive", "drive_size", "tip", "variant",
-                "pitch", "diameter", "material", "finish", "standard", "name", "note"):
+                "pitch", "diameter", "material", "finish", "name", "note"):
         value = getattr(args, key)
         if value is not None:
             hw[key] = value
