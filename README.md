@@ -113,7 +113,7 @@ The following Bambu Lab-specific fields are also recognized:
 
 ## Hardware Labels
 
-The same 40x30mm label also works for screws, bolts, nuts, washers, heat-set inserts and standoffs. A hardware label shows the size (`M3 × 12`), a description bar (`Socket cap screw`), a side-view icon of the part with its head shape, a top-view icon of the drive, a few properties, and an optional QR code.
+The same 40x30mm label also works for screws, bolts, nuts, washers, heat-set inserts and standoffs. A hardware label shows the size (`M3 × 12`), a description bar (`Socket cap screw`), a side-view icon of the part with its head shape, a top-view icon of the drive, up to four property lines without labels (`Inbus 4`, `12.9 staal`, `zwart geoxideerd`, `DIN 912`) so long values stay readable, and an optional QR code.
 
 ![Example hardware labels](example_hardware.png)
 
@@ -139,7 +139,7 @@ Flags also override what Homebox returns. Run `python generate_label.py hw --hel
 
 ### Language
 
-Hardware labels are in Dutch by default (`Cilinderkopschroef`, `Zeskantbout`, `Borgmoer`, `Materiaal:`). Only terms with a common Dutch word are translated. Torx, Pozidriv, heat-set insert and standoff stay as they are. Use `--lang en` or `language = "en"` in `config.toml` for English labels.
+Hardware labels are in Dutch by default (`Cilinderkopschroef`, `Zeskantbout`, `Borgmoer`, `Sleutel 13 mm`). Only terms with a common Dutch word are translated. Torx, Pozidriv, heat-set insert and standoff stay as they are. Use `--lang en` or `language = "en"` in `config.toml` for English labels.
 
 ### Icons
 

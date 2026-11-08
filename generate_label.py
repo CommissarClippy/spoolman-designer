@@ -385,8 +385,7 @@ HW_ICON_H = 50
 HW_SIDE_X = 12
 HW_SIDE_W = 104
 HW_TOP_X = 126
-HW_PROP_X_LABEL = 12
-HW_PROP_GAP = 6           # space between the longest label and the values
+HW_PROP_X = 12
 HW_PROP_Y_START = 150
 HW_PROP_LINE_H = 21
 HW_PROP_FONT_SIZE = 16
@@ -482,9 +481,8 @@ HW_TEXT = {
             "standoff": {"male-female": "Standoff M-F", "female-female": "Standoff F-F",
                          "male-male": "Standoff M-M"},
         },
-        "props": {"drive": "Drive:", "wrench": "Drive:", "pitch": "Pitch:", "diameter": "OD:",
-                  "material": "Material:", "finish": "Finish:", "standard": "Std:",
-                  "note": "Note:"},
+        # Prefixes for values that don't explain themselves
+        "props": {"wrench": "Wrench", "pitch": "Pitch", "diameter": "\u00d8"},
     },
     "nl": {
         "types": {"screw": "schroef", "bolt": "bout", "nut": "Moer", "washer": "Ring",
@@ -504,9 +502,7 @@ HW_TEXT = {
             "standoff": {"male-female": "Standoff M-F", "female-female": "Standoff F-F",
                          "male-male": "Standoff M-M"},
         },
-        "props": {"drive": "Bit:", "wrench": "Sleutel:", "pitch": "Spoed:",
-                  "diameter": "Ø:", "material": "Materiaal:",
-                  "finish": "Afwerking:", "standard": "Norm:", "note": "Notitie:"},
+        "props": {"wrench": "Sleutel", "pitch": "Spoed", "diameter": "\u00d8"},
     },
 }
 HW_DEFAULT_LANG = "nl"
@@ -590,27 +586,28 @@ def hardware_description(hw):
 
 
 def hardware_properties(hw):
-    """Label/value rows shown under the icons."""
+    """Lines shown under the icons. Values go without labels ('Inbus 4',
+    '12.9 staal', 'DIN 912') so long ones still fit next to the QR code."""
     text = HW_TEXT[hw["lang"]]
-    labels = text["props"]
+    prefix = text["props"]
     props = []
     if hw["type"] in ("screw", "bolt"):
         drive = text["drives"].get(hw["drive"], hw["drive"].title())
         if hw.get("drive_size"):
             size = _fmt_num(hw["drive_size"])
             if hw["drive"] == "external":
-                # Wrench row: the size alone says it all ("Sleutel: 13 mm")
-                drive = f"{size} mm" if re.fullmatch(r"[\d.]+", size) else size
+                unit = " mm" if re.fullmatch(r"[\d.]+", size) else ""
+                drive = f"{prefix['wrench']} {size}{unit}"
             else:
                 drive = f"{drive} {size}"
-        props.append((labels["wrench" if hw["drive"] == "external" else "drive"], drive))
+        props.append(drive)
     if hw.get("pitch"):
-        props.append((labels["pitch"], f"{_fmt_num(hw['pitch'])} mm"))
+        props.append(f"{prefix['pitch']} {_fmt_num(hw['pitch'])} mm")
     if hw.get("diameter"):
-        props.append((labels["diameter"], f"{_fmt_num(hw['diameter'])} mm"))
+        props.append(f"{prefix['diameter']} {_fmt_num(hw['diameter'])} mm")
     for key in ("material", "finish", "standard", "note"):
         if hw.get(key):
-            props.append((labels[key], str(hw[key])))
+            props.append(str(hw[key]))
     return props
 
 
@@ -896,19 +893,15 @@ def generate_hardware_label(hw, scale=1.0):
         prop_y, max_lines, col_right = HW_NOQR_PROP_Y_START, HW_NOQR_PROP_MAX_LINES, HW_COL_RIGHT
 
     # -- Properties --
-    label_font = load_font(bold=False, size=int(HW_PROP_FONT_SIZE * s))
-    shown = props[:max_lines]
-    label_w = max((draw.textlength(label, font=label_font) for label, _ in shown), default=0)
-    value_x = int(HW_PROP_X_LABEL * s + label_w + HW_PROP_GAP * s)
+    value_x = int(HW_PROP_X * s)
     value_w = int(col_right * s) - value_x
-    for i, (label, value) in enumerate(shown):
-        # Align on the baseline so shrunk values stay level with their label
+    for i, value in enumerate(props[:max_lines]):
+        # Align on the baseline so shrunk values stay level with the other lines
         y = int((prop_y + i * HW_PROP_LINE_H + HW_PROP_FONT_SIZE * 0.8) * s)
         value_font = auto_shrink_font(
             draw, value, bold=False, max_width=value_w,
             start_size=int(HW_PROP_FONT_SIZE * s), min_size=int(11 * s),
         )
-        draw.text((int(HW_PROP_X_LABEL * s), y), label, fill="black", font=label_font, anchor="ls")
         draw.text((value_x, y), value, fill="black", font=value_font, anchor="ls")
 
     return img, title, bar_text
