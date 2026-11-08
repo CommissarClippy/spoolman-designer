@@ -1192,7 +1192,9 @@ def main():
         or config.get("spoolman_url")
         or "http://localhost:7912"
     )
-    default_aml = config.get("output_format", "png").lower() == "aml"
+    default_format = config.get("output_format", "png").lower()
+    default_aml = default_format == "aml"
+    default_pdf = default_format == "pdf"
     output_dir = config.get("output_dir")
 
     parser = argparse.ArgumentParser(
@@ -1232,6 +1234,12 @@ def main():
         action="store_true",
         default=False,
         help="Output in PNG format (overrides --aml and config)",
+    )
+    gen_parser.add_argument(
+        "--pdf",
+        action="store_true",
+        default=default_pdf,
+        help="Output a 40x30mm PDF page for printing through a printer driver",
     )
     gen_parser.add_argument(
         "--logo",
@@ -1290,11 +1298,14 @@ def main():
         "--lang", choices=sorted(HW_TEXT), default=config.get("language", HW_DEFAULT_LANG),
         help=f"Label language (default: language in config, or {HW_DEFAULT_LANG})",
     )
-    hw_parser.add_argument("--output", "-o", default=None, help="Output filename")
+    hw_parser.add_argument("--output", "-o", default=None,
+                           help="Output filename (with --all --pdf: the combined PDF)")
     hw_parser.add_argument("--aml", action="store_true", default=default_aml,
                            help="Output in Labelife AML format instead of PNG")
     hw_parser.add_argument("--png", action="store_true", default=False,
                            help="Output in PNG format (overrides --aml and config)")
+    hw_parser.add_argument("--pdf", action="store_true", default=default_pdf,
+                           help="Output 40x30mm PDF pages; with --all, one PDF with every label")
 
     # Show help when no arguments provided
     if len(sys.argv) < 2:
@@ -1326,16 +1337,26 @@ def main():
     )
     save_label(
         img, args.output or default_filename(args.spool_id, brand, material, name),
-        explicit=bool(args.output), output_dir=output_dir, use_aml=args.aml and not args.png,
+        explicit=bool(args.output), output_dir=output_dir, fmt=output_format(args),
     )
+
+
+def output_format(args):
+    """Pick the output format from the flags: --png wins, then --pdf, then --aml."""
+    if args.png:
+        return "png"
+    if args.pdf:
+        return "pdf"
+    return "aml" if args.aml else "png"
 
 
 def run_hardware(args, output_dir):
     """Handle the `hardware` subcommand."""
     hb_url = args.homebox_url.rstrip("/")
-    use_aml = args.aml and not args.png
+    fmt = output_format(args)
     if not (args.item or args.list or args.all):
-        render_hardware(args, {}, hb_url, output_dir, use_aml)
+        img, name = render_hardware(args, {}, hb_url)
+        save_label(img, args.output or name, bool(args.output), output_dir, fmt)
         return
 
     session = homebox_session(
@@ -1348,28 +1369,37 @@ def run_hardware(args, output_dir):
         list_homebox_items(session, hb_url, args.tag)
         return
     if args.all:
-        if args.output:
-            print("Error: --output can't be used with --all", file=sys.stderr)
+        if args.output and fmt != "pdf":
+            print("Error: --output with --all only works with --pdf", file=sys.stderr)
             sys.exit(1)
         # Never label the whole inventory by accident: always filter on a tag
         items = fetch_homebox_items(session, hb_url, args.tag or "Hardware")
-        if not items:
-            print("No items found.")
-            return
+        pages = []
         for item in items:
             hw = homebox_to_hardware(fetch_homebox_item(session, hb_url, item["id"]))
-            if not render_hardware(args, hw, hb_url, output_dir, use_aml, strict=False):
+            rendered = render_hardware(args, hw, hb_url, strict=False)
+            if rendered is None:
                 print(f"Skipped {item.get('assetId') or item['id']} "
                       f"({item.get('name', '')}): no size", file=sys.stderr)
+            elif fmt == "pdf":
+                pages.append(rendered[0])
+            else:
+                save_label(*rendered, explicit=False, output_dir=output_dir, fmt=fmt)
+        if fmt == "pdf" and pages:
+            save_label(pages, args.output or "hw_labels", bool(args.output), output_dir, fmt)
+        elif not items:
+            print("No items found.")
         return
     hw = homebox_to_hardware(fetch_homebox_item(session, hb_url, args.item))
-    render_hardware(args, hw, hb_url, output_dir, use_aml)
+    img, name = render_hardware(args, hw, hb_url)
+    save_label(img, args.output or name, bool(args.output), output_dir, fmt)
 
 
-def render_hardware(args, hw, hb_url, output_dir, use_aml, strict=True):
-    """Apply CLI overrides and QR choice to a hardware dict and save its label.
+def render_hardware(args, hw, hb_url, strict=True):
+    """Apply CLI overrides and QR choice to a hardware dict and render it.
 
-    Returns False (or exits when strict) if the item has no size.
+    Returns (image, default filename), or None (exits when strict) if the
+    item has no size.
     """
     # Flags override whatever Homebox returned
     for key in ("type", "size", "length", "head", "drive", "drive_size", "tip", "variant",
@@ -1379,7 +1409,7 @@ def render_hardware(args, hw, hb_url, output_dir, use_aml, strict=True):
             hw[key] = value
     if not hw.get("size"):
         if not strict:
-            return False
+            return None
         print("Error: No size found; set a Size field in Homebox or pass --size", file=sys.stderr)
         sys.exit(1)
 
@@ -1394,32 +1424,36 @@ def render_hardware(args, hw, hb_url, output_dir, use_aml, strict=True):
 
     hw = normalize_hardware(hw)
     img, title, bar_text = generate_hardware_label(hw, scale=AML_SCALE)
-    save_label(
-        img, args.output or hardware_filename(hw, title, bar_text),
-        explicit=bool(args.output), output_dir=output_dir, use_aml=use_aml,
-    )
-    return True
+    return img, hardware_filename(hw, title, bar_text)
 
 
-def save_label(img, basename, explicit, output_dir, use_aml):
-    """Write a label image as PNG or AML."""
-    img = img.convert("RGBA")
+def save_label(img, basename, explicit, output_dir, fmt):
+    """Write a label image as PNG, AML or PDF. For PDF, img may be a list of
+    images: each becomes its own 40x30mm page."""
     # Prepend output_dir when set and no explicit --output path given
     if output_dir and not explicit:
         os.makedirs(output_dir, exist_ok=True)
         basename = os.path.join(output_dir, basename)
 
-    if use_aml:
+    if fmt == "pdf":
+        pages = [i.convert("RGB") for i in (img if isinstance(img, list) else [img])]
+        output = basename if basename.endswith(".pdf") else basename + ".pdf"
+        # The render is 2.5x the 203 DPI base, so this DPI makes each page 40x30mm
+        pages[0].save(output, "PDF", resolution=DPI * AML_SCALE,
+                      save_all=True, append_images=pages[1:])
+        print(f"PDF with {len(pages)} label(s) saved to {output}")
+    elif fmt == "aml":
         output = basename if basename.endswith(".aml") else basename + ".aml"
         label_name = os.path.splitext(os.path.basename(output))[0]
-        aml_content = generate_aml(img, label_name)
+        aml_content = generate_aml(img.convert("RGBA"), label_name)
         with open(output, "w", encoding="utf-8") as f:
             f.write(aml_content)
         print(f"AML label saved to {output}")
     else:
         output = basename if basename.endswith(".png") else basename + ".png"
-        img.save(output)
+        img.convert("RGBA").save(output)
         print(f"Label saved to {output}")
+
 
 if __name__ == "__main__":
     main()
