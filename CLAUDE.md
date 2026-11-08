@@ -40,7 +40,7 @@ Optional `config.toml` in project root (gitignored). Priority: CLI flags > env v
 
 ```toml
 spoolman_url = "http://10.0.1.9:7912"
-output_format = "aml"   # "aml" or "png"
+output_format = "aml"   # "aml", "png" or "pdf"
 output_dir = "output"
 use_logo = true         # use manufacturer logo instead of text brand name
 ```
@@ -51,6 +51,7 @@ Everything lives in `generate_label.py`. Key concepts:
 
 - **Label rendering**: Uses Pillow to draw onto a 320x240px base image (203 DPI), always rendered at 2.5x scale (800x600). All layout is defined via pixel-coordinate constants at the top of the file.
 - **AML output**: For the Labelife/Phomemo M110 printer app. The label image is rendered at 2.5x scale (800x600), base64-encoded, and embedded in an XML template (`AML_TEMPLATE`). Output files go to `output/`.
+- **PDF output**: `--pdf` saves 40x30mm pages (render saved at `DPI * AML_SCALE`) for printing through a printer driver (Phomemo M220 on Windows). `hw --all --pdf` combines every label into one PDF (`hw_labels.pdf`). Output handling lives in `save_label(..., fmt)`.
 - **Spoolman API**: Fetches `/api/v1/spool/{id}` which returns spool data with nested `filament`, `vendor`, and `extra` fields. Custom extra fields on filaments:
 
   | Key                 | Type          | Unit |
