@@ -137,27 +137,36 @@ python generate_label.py hw --type screw --size M3 --length 12 --head cap --driv
 
 Flags also override what Homebox returns. Run `python generate_label.py hw --help` for the full list.
 
+### Language
+
+Hardware labels are in Dutch by default (`Cilinderkopschroef`, `Zeskantbout`, `Borgmoer`, `Materiaal:`). Only terms with a common Dutch word are translated. Torx, Pozidriv, heat-set insert and standoff stay as they are. Use `--lang en` or `language = "en"` in `config.toml` for English labels.
+
+### Icons
+
+Bolts are drawn with a plain shank section and a nut on the thread, and screws are threaded up to the head. The end of a screw or bolt is flat by default (machine thread). Set `Tip` to `point` for wood, chipboard and self-tapping screws. Names containing words like "spaanplaat", "hout", "parker" or "wood" get a point automatically.
+
 ### Homebox custom fields
 
-Add these as text fields on your hardware items. All are optional, and field names are matched case-insensitively. When a field is missing, the label tries to read it from the item name (`M3x12 socket cap screw` gives size, length and head) and the type from tags (`Screws`, `Nut`, ...).
+Add these as text fields on your hardware items. All are optional, and field names are matched case-insensitively. The Dutch name in brackets works too, and so do Dutch values (`inbus`, `kruiskop`, `verzonken`, `bolkop`, `borgmoer`, `veerring`, `punt`). When a field is missing, the label tries to read it from the item name (`M3x12 socket cap screw` gives size, length and head) and the type from tags (`Screws`, `Nut`, ...).
 
 | Field | Example values | Used for |
 | --- | --- | --- |
-| `Type` | screw, bolt, nut, washer, insert, standoff | Icon and description |
-| `Size` | M3, M2.5 | Title |
-| `Length` | 12 | Title (screws, bolts, inserts, standoffs) |
-| `Head` | cap, button, pan, countersunk (sunken/flat), cheese, hex, flange | Side icon and description |
-| `Drive` | hex (allen), torx, phillips, pozidriv, slotted (flat), square | Top icon and properties |
-| `Drive size` | 2.5, T20, PH2 | Properties |
+| `Type` (Soort) | screw, bolt, nut, washer, insert, standoff | Icon and description |
+| `Size` (Maat) | M3, M2.5 | Title |
+| `Length` (Lengte) | 12 | Title (screws, bolts, inserts, standoffs) |
+| `Head` (Kop) | cap, button, pan, countersunk (sunken/flat), cheese, hex, flange | Side icon and description |
+| `Drive` (Aandrijving) | hex (allen), torx, phillips, pozidriv, slotted (flat), square | Top icon and properties |
+| `Drive size` (Bitmaat, Sleutelmaat) | 2.5, T20, PH2, or 13 for a hex head | Properties |
+| `Tip` (Punt) | flat (default), point | Side icon |
 | `Variant` | nuts: hex, nyloc, flange, square, cap; washers: flat, spring, fender; standoffs: male-female, female-female, male-male | Icon and description |
-| `Pitch` | 0.35 (fine threads only) | Properties |
-| `Diameter` | 4.6 (outer diameter of washers, inserts) | Properties |
-| `Material` | A2 stainless, 12.9 steel, brass, nylon | Properties |
-| `Finish` | black oxide, zinc | Properties |
-| `Standard` | DIN 912, ISO 7380 | Properties |
-| `Supplier URL` | link to the product page | QR with `--qr supplier` |
-| `Label text` | overrides the description bar | Description |
-| `Label note` | short extra line | Properties |
+| `Pitch` (Spoed) | 0.35 (fine threads only) | Properties |
+| `Diameter` (Buitendiameter) | 4.6 (outer diameter of washers, inserts) | Properties |
+| `Material` (Materiaal) | A2 stainless, 12.9 steel, brass, nylon | Properties |
+| `Finish` (Afwerking) | black oxide, zinc (zwart, verzinkt) | Properties |
+| `Standard` (Norm) | DIN 912, ISO 7380 | Properties |
+| `Supplier URL` (Leverancier URL) | link to the product page | QR with `--qr supplier` |
+| `Label text` (Label tekst) | overrides the description bar | Description |
+| `Label note` (Label notitie) | short extra line | Properties |
 
 The built-in "Purchased from" field is a good place for the supplier name.
 

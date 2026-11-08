@@ -386,7 +386,7 @@ HW_SIDE_X = 12
 HW_SIDE_W = 104
 HW_TOP_X = 126
 HW_PROP_X_LABEL = 12
-HW_PROP_X_VALUE = 92
+HW_PROP_GAP = 6           # space between the longest label and the values
 HW_PROP_Y_START = 150
 HW_PROP_LINE_H = 21
 HW_PROP_FONT_SIZE = 16
@@ -400,65 +400,116 @@ HW_BIG_SINGLE_BOX = (204, 104, 104, 104)
 HW_NOQR_PROP_Y_START = 96
 HW_NOQR_PROP_MAX_LINES = 6
 
-HW_TYPES = {
-    "screw": "Screw",
-    "bolt": "Bolt",
-    "nut": "Nut",
-    "washer": "Washer",
-    "insert": "Heat-set insert",
-    "standoff": "Standoff",
+HW_TYPES = ("screw", "bolt", "nut", "washer", "insert", "standoff")
+HW_TYPE_ALIASES = {
+    "screws": "screw", "schroef": "screw", "schroeven": "screw",
+    "bolts": "bolt", "bout": "bolt", "bouten": "bolt",
+    "nuts": "nut", "moer": "nut", "moeren": "nut", "borgmoer": "nut",
+    "dopmoer": "nut", "zeskantmoer": "nut", "flensmoer": "nut",
+    "washers": "washer", "ring": "washer", "ringen": "washer",
+    "sluitring": "washer", "veerring": "washer",
+    "inserts": "insert", "heat-set insert": "insert", "inzetmoer": "insert",
+    "inzetmoeren": "insert", "inserter": "insert",
+    "standoffs": "standoff", "afstandsbus": "standoff", "afstandsbussen": "standoff",
 }
 
 # Head shapes as seen from the side. Keys are canonical names.
-HW_HEADS = {
-    "cap": "Socket cap",
-    "button": "Button head",
-    "pan": "Pan head",
-    "countersunk": "Countersunk",
-    "cheese": "Cheese head",
-    "hex": "Hex head",
-    "flange": "Flange head",
-}
+HW_HEADS = ("cap", "button", "pan", "countersunk", "cheese", "hex", "flange")
 HW_HEAD_ALIASES = {
-    "socket": "cap", "shcs": "cap", "socket cap": "cap",
-    "dome": "button", "bhcs": "button", "round": "button",
+    "lage cilinderkop": "cheese",  # before "cilinderkop" for name matching
+    "socket": "cap", "shcs": "cap", "socket cap": "cap", "cilinderkop": "cap",
+    "dome": "button", "bhcs": "button", "round": "button", "bolkop": "button",
+    "lenskop": "pan", "panhead": "pan",
     "sunken": "countersunk", "csk": "countersunk", "flat": "countersunk",
-    "fhcs": "countersunk", "flat head": "countersunk",
-    "hexagon": "hex",
+    "fhcs": "countersunk", "flat head": "countersunk", "verzonken": "countersunk",
+    "platverzonken": "countersunk",
+    "hexagon": "hex", "zeskant": "hex", "zeskantkop": "hex",
+    "flens": "flange", "flenskop": "flange",
 }
 
 # Drive recesses as seen from the top.
-HW_DRIVES = {
-    "phillips": "Phillips",
-    "pozidriv": "Pozidriv",
-    "slotted": "Slotted",
-    "hex": "Hex",
-    "torx": "Torx",
-    "square": "Square",
-    "external": "External hex",
-}
 HW_DRIVE_ALIASES = {
     "philips": "phillips", "ph": "phillips", "cross": "phillips",
+    "kruis": "phillips", "kruiskop": "phillips",
     "pz": "pozidriv", "pozi": "pozidriv",
     "flat": "slotted", "slot": "slotted", "straight": "slotted",
+    "sleuf": "slotted", "zaaggleuf": "slotted", "plat": "slotted",
     "allen": "hex", "socket": "hex", "inbus": "hex", "hex socket": "hex",
-    "torq": "torx", "torck": "torx", "tx": "torx", "star": "torx",
-    "robertson": "square",
+    "binnenzeskant": "hex",
+    "torq": "torx", "torck": "torx", "tx": "torx", "star": "torx", "ster": "torx",
+    "robertson": "square", "vierkant": "square",
+    "buitenzeskant": "external", "zeskant": "external", "sleutel": "external",
 }
 
-HW_VARIANTS = {
-    "nut": {"hex": "Hex nut", "nyloc": "Nyloc nut", "flange": "Flange nut",
-            "square": "Square nut", "cap": "Cap nut"},
-    "washer": {"flat": "Washer", "spring": "Spring washer",
-               "fender": "Fender washer"},
-    "standoff": {"male-female": "Standoff M-F", "female-female": "Standoff F-F",
-                 "male-male": "Standoff M-M"},
-}
 HW_VARIANT_ALIASES = {
     "locknut": "nyloc", "lock": "nyloc", "acorn": "cap", "dome": "cap",
+    "borg": "nyloc", "borgmoer": "nyloc", "zeskant": "hex", "flens": "flange",
+    "vierkant": "square", "dop": "cap", "dopmoer": "cap",
     "split": "spring", "lock washer": "spring", "penny": "fender",
+    "vlak": "flat", "sluitring": "flat", "veer": "spring", "veerring": "spring",
+    "carrosserie": "fender", "carrosseriering": "fender",
     "mf": "male-female", "ff": "female-female", "mm": "male-male",
 }
+
+# Screw/bolt ends: pointed (wood, self-tapping) or flat (machine thread).
+HW_TIP_ALIASES = {
+    "pointed": "point", "sharp": "point", "punt": "point", "spits": "point",
+    "scherp": "point", "wood": "point", "hout": "point",
+    "blunt": "flat", "plat": "flat", "stomp": "flat", "vlak": "flat",
+}
+HW_POINT_WORDS = ("point", "pointed", "wood", "self-tapping", "tapping", "chipboard",
+                  "punt", "hout", "houtschroef", "spaanplaat", "spaanplaatschroef",
+                  "parker", "plaatschroef")
+
+# Label text per language. Screw/bolt descriptions are formatted with {t},
+# the lowercase type name.
+HW_TEXT = {
+    "en": {
+        "types": {"screw": "screw", "bolt": "bolt", "nut": "Nut", "washer": "Washer",
+                  "insert": "Heat-set insert", "standoff": "Standoff"},
+        "heads": {"cap": "Socket cap {t}", "button": "Button head {t}",
+                  "pan": "Pan head {t}", "countersunk": "Countersunk {t}",
+                  "cheese": "Cheese head {t}", "hex": "Hex head {t}",
+                  "flange": "Flange head {t}"},
+        "drives": {"phillips": "Phillips", "pozidriv": "Pozidriv", "slotted": "Slotted",
+                   "hex": "Hex", "torx": "Torx", "square": "Square",
+                   "external": "External hex"},
+        "variants": {
+            "nut": {"hex": "Hex nut", "nyloc": "Nyloc nut", "flange": "Flange nut",
+                    "square": "Square nut", "cap": "Cap nut"},
+            "washer": {"flat": "Washer", "spring": "Spring washer",
+                       "fender": "Fender washer"},
+            "standoff": {"male-female": "Standoff M-F", "female-female": "Standoff F-F",
+                         "male-male": "Standoff M-M"},
+        },
+        "props": {"drive": "Drive:", "wrench": "Drive:", "pitch": "Pitch:", "diameter": "OD:",
+                  "material": "Material:", "finish": "Finish:", "standard": "Std:",
+                  "note": "Note:"},
+    },
+    "nl": {
+        "types": {"screw": "schroef", "bolt": "bout", "nut": "Moer", "washer": "Ring",
+                  "insert": "Heat-set insert", "standoff": "Standoff"},
+        "heads": {"cap": "Cilinderkop{t}", "button": "Bolkop{t}",
+                  "pan": "Lenskop{t}", "countersunk": "Verzonken {t}",
+                  "cheese": "Lage cilinderkop{t}", "hex": "Zeskant{t}",
+                  "flange": "Flens{t}"},
+        "drives": {"phillips": "Kruiskop", "pozidriv": "Pozidriv", "slotted": "Sleuf",
+                   "hex": "Inbus", "torx": "Torx", "square": "Vierkant",
+                   "external": "Zeskant"},
+        "variants": {
+            "nut": {"hex": "Zeskantmoer", "nyloc": "Borgmoer", "flange": "Flensmoer",
+                    "square": "Vierkante moer", "cap": "Dopmoer"},
+            "washer": {"flat": "Sluitring", "spring": "Veerring",
+                       "fender": "Carrosseriering"},
+            "standoff": {"male-female": "Standoff M-F", "female-female": "Standoff F-F",
+                         "male-male": "Standoff M-M"},
+        },
+        "props": {"drive": "Bit:", "wrench": "Sleutel:", "pitch": "Spoed:",
+                  "diameter": "Ø:", "material": "Materiaal:",
+                  "finish": "Afwerking:", "standard": "Norm:", "note": "Notitie:"},
+    },
+}
+HW_DEFAULT_LANG = "nl"
 
 
 def _canon(value, aliases):
@@ -473,7 +524,7 @@ def _canon(value, aliases):
 def normalize_hardware(item):
     """Fill in defaults and canonical names for a hardware item dict."""
     hw = {k: v for k, v in item.items() if v not in (None, "")}
-    hw["type"] = str(hw.get("type", "screw")).strip().lower()
+    hw["type"] = _canon(hw.get("type"), HW_TYPE_ALIASES) or "screw"
     if hw["type"] == "bolt" and "head" not in hw:
         hw["head"] = "hex"
     if hw["type"] in ("screw", "bolt"):
@@ -482,9 +533,11 @@ def normalize_hardware(item):
         if drive is None:
             drive = "external" if hw["head"] in ("hex", "flange") else "hex"
         hw["drive"] = drive
+        hw["tip"] = _canon(hw.get("tip"), HW_TIP_ALIASES) or "flat"
     else:
         hw.pop("head", None)
         hw.pop("drive", None)
+        hw.pop("tip", None)
     default_variant = {"nut": "hex", "washer": "flat", "standoff": "male-female"}
     if hw["type"] in default_variant:
         hw["variant"] = (
@@ -498,6 +551,7 @@ def normalize_hardware(item):
     if re.fullmatch(r"\d+(\.\d+)?", size):
         size = f"M{size}"
     hw["size"] = size.upper() if size.lower().startswith("m") else size
+    hw["lang"] = hw.get("lang") if hw.get("lang") in HW_TEXT else HW_DEFAULT_LANG
     return hw
 
 
@@ -518,42 +572,42 @@ def hardware_title(hw):
 
 
 def hardware_description(hw):
-    """Text for the black bar, e.g. 'Countersunk screw' or 'Nyloc nut'."""
+    """Text for the black bar, e.g. 'Cilinderkopschroef' or 'Nyloc nut'."""
     if hw.get("name"):
         return hw["name"]
+    text = HW_TEXT[hw["lang"]]
     t = hw["type"]
     if t in ("screw", "bolt"):
-        head = HW_HEADS.get(hw["head"], hw["head"].title())
-        return f"{head} {t}"
-    if t in HW_VARIANTS:
-        variants = HW_VARIANTS[t]
-        return variants.get(hw["variant"], f"{hw['variant'].title()} {t}")
-    return HW_TYPES.get(t, t.title())
+        fmt = text["heads"].get(hw["head"], hw["head"].title() + " {t}")
+        return fmt.format(t=text["types"][t])
+    if t in text["variants"]:
+        variants = text["variants"][t]
+        return variants.get(hw["variant"], f"{hw['variant'].title()} {text['types'][t]}")
+    return text["types"].get(t, t.title())
 
 
 def hardware_properties(hw):
     """Label/value rows shown under the icons."""
+    text = HW_TEXT[hw["lang"]]
+    labels = text["props"]
     props = []
     if hw["type"] in ("screw", "bolt"):
-        drive = HW_DRIVES.get(hw["drive"], hw["drive"].title())
+        drive = text["drives"].get(hw["drive"], hw["drive"].title())
         if hw.get("drive_size"):
             size = _fmt_num(hw["drive_size"])
-            if re.fullmatch(r"[\d.]+", size):
-                size += " mm"
-            drive = f"{drive} {size}"
-        props.append(("Drive:", drive))
+            if hw["drive"] == "external":
+                # Wrench row: the size alone says it all ("Sleutel: 13 mm")
+                drive = f"{size} mm" if re.fullmatch(r"[\d.]+", size) else size
+            else:
+                drive = f"{drive} {size}"
+        props.append((labels["wrench" if hw["drive"] == "external" else "drive"], drive))
     if hw.get("pitch"):
-        props.append(("Pitch:", f"{_fmt_num(hw['pitch'])} mm"))
+        props.append((labels["pitch"], f"{_fmt_num(hw['pitch'])} mm"))
     if hw.get("diameter"):
-        props.append(("OD:", f"{_fmt_num(hw['diameter'])} mm"))
-    if hw.get("material"):
-        props.append(("Material:", str(hw["material"])))
-    if hw.get("finish"):
-        props.append(("Finish:", str(hw["finish"])))
-    if hw.get("standard"):
-        props.append(("Std:", str(hw["standard"])))
-    if hw.get("note"):
-        props.append(("Note:", str(hw["note"])))
+        props.append((labels["diameter"], f"{_fmt_num(hw['diameter'])} mm"))
+    for key in ("material", "finish", "standard", "note"):
+        if hw.get(key):
+            props.append((labels[key], str(hw[key])))
     return props
 
 
@@ -659,13 +713,33 @@ def draw_side_profile(draw, box, hw, lw):
     else:  # cheese and anything unknown
         draw.rectangle([hx0, top + hh * 0.15, hx1, bot - hh * 0.15], outline="black", width=lw)
 
-    # Shank: bolts get a plain section before the thread, screws are fully threaded
+    # Shank: screws are threaded up to the head; bolts have a plain section
+    # and carry a nut so they read as a bolt at a glance.
     sx0, sx1 = hx1, x + w
-    draw.rectangle([sx0, cy - d / 2, sx1, cy + d / 2], outline="black", width=lw)
-    thread_start = sx0 + (sx1 - sx0) * (0.4 if hw["type"] == "bolt" else 0.0)
+    st, sb = cy - d / 2, cy + d / 2
+    if hw.get("tip") == "point":
+        body_end = sx1 - d * 1.2
+        end = [(body_end, st), (sx1, cy), (body_end, sb)]
+    else:
+        c = d * 0.2
+        body_end = sx1 - c
+        end = [(body_end, st), (sx1, st + c), (sx1, sb - c), (body_end, sb)]
+    draw.polygon([(sx0, st), *end, (sx0, sb)], outline="black", width=lw)
+
+    is_bolt = hw["type"] == "bolt"
+    thread_start = sx0 + (sx1 - sx0) * (0.45 if is_bolt else 0.0)
     if thread_start > sx0:
-        draw.line([(thread_start, cy - d / 2), (thread_start, cy + d / 2)], fill="black", width=lw)
-    _draw_threads(draw, thread_start, cy - d / 2, sx1, cy + d / 2, lw, d * 0.55)
+        draw.line([(thread_start, st), (thread_start, sb)], fill="black", width=lw)
+    _draw_threads(draw, thread_start, st, body_end, sb, lw, d * 0.55)
+
+    if is_bolt:
+        nut_w = w * 0.13
+        nut_h = hh * 0.85
+        nx0 = thread_start + (body_end - thread_start) * 0.35
+        nut = [nx0, cy - nut_h / 2, nx0 + nut_w, cy + nut_h / 2]
+        draw.rectangle(nut, fill="white", outline="black", width=lw)
+        draw.line([(nx0, cy - nut_h * 0.2), (nx0 + nut_w, cy - nut_h * 0.2)], fill="black", width=lw)
+        draw.line([(nx0, cy + nut_h * 0.2), (nx0 + nut_w, cy + nut_h * 0.2)], fill="black", width=lw)
 
 
 def draw_top_view(draw, box, hw, lw):
@@ -820,15 +894,19 @@ def generate_hardware_label(hw, scale=1.0):
 
     # -- Properties --
     label_font = load_font(bold=False, size=int(HW_PROP_FONT_SIZE * s))
-    value_w = int((col_right - HW_PROP_X_VALUE) * s)
-    for i, (label, value) in enumerate(props[:max_lines]):
-        y = int((prop_y + i * HW_PROP_LINE_H) * s)
+    shown = props[:max_lines]
+    label_w = max((draw.textlength(label, font=label_font) for label, _ in shown), default=0)
+    value_x = int(HW_PROP_X_LABEL * s + label_w + HW_PROP_GAP * s)
+    value_w = int(col_right * s) - value_x
+    for i, (label, value) in enumerate(shown):
+        # Align on the baseline so shrunk values stay level with their label
+        y = int((prop_y + i * HW_PROP_LINE_H + HW_PROP_FONT_SIZE * 0.8) * s)
         value_font = auto_shrink_font(
             draw, value, bold=False, max_width=value_w,
             start_size=int(HW_PROP_FONT_SIZE * s), min_size=int(11 * s),
         )
-        draw.text((int(HW_PROP_X_LABEL * s), y), label, fill="black", font=label_font)
-        draw.text((int(HW_PROP_X_VALUE * s), y), value, fill="black", font=value_font)
+        draw.text((int(HW_PROP_X_LABEL * s), y), label, fill="black", font=label_font, anchor="ls")
+        draw.text((value_x, y), value, fill="black", font=value_font, anchor="ls")
 
     return img, title, bar_text
 
@@ -849,8 +927,25 @@ HB_FIELD_MAP = {
     "finish": "finish",
     "standard": "standard", "din": "standard", "iso": "standard",
     "supplier_url": "supplier_url", "source_url": "supplier_url", "url": "supplier_url",
+    "tip": "tip", "end": "tip",
     "label_text": "name",
     "label_note": "note",
+    # Dutch field names
+    "soort": "type",
+    "maat": "size", "draad": "size",
+    "lengte": "length",
+    "kop": "head", "kopvorm": "head",
+    "aandrijving": "drive", "bit": "drive",
+    "bitmaat": "drive_size", "sleutelmaat": "drive_size", "aandrijving_maat": "drive_size",
+    "spoed": "pitch",
+    "buitendiameter": "diameter",
+    "materiaal": "material",
+    "afwerking": "finish", "kleur": "finish",
+    "norm": "standard",
+    "punt": "tip",
+    "leverancier_url": "supplier_url", "bron_url": "supplier_url", "link": "supplier_url",
+    "label_tekst": "name",
+    "label_notitie": "note",
 }
 
 
@@ -976,8 +1071,9 @@ def homebox_to_hardware(entity):
     if "type" not in hw:
         tags = [t.get("name", "").lower() for t in
                 (entity.get("tags") or entity.get("labels") or [])]
-        for t in HW_TYPES:
-            if t in tags or f"{t}s" in tags or re.search(rf"\b{t}s?\b", lname):
+        words = {t: t for t in HW_TYPES} | HW_TYPE_ALIASES
+        for word, t in words.items():
+            if word in tags or re.search(rf"\b{re.escape(word)}\b", lname):
                 hw["type"] = t
                 break
     if "size" not in hw:
@@ -993,6 +1089,9 @@ def homebox_to_hardware(entity):
             if re.search(rf"\b{alias}\b", lname):
                 hw["head"] = alias
                 break
+
+    if "tip" not in hw and any(re.search(rf"\b{w}\b", lname) for w in HW_POINT_WORDS):
+        hw["tip"] = "point"
 
     hw["id"] = entity.get("assetId") or entity.get("id")
     hw["homebox_id"] = entity.get("id")
@@ -1162,6 +1261,7 @@ def main():
         ("--head", "cap, button, pan, countersunk, cheese, hex, flange"),
         ("--drive", "hex, torx, phillips, pozidriv, slotted, square"),
         ("--drive-size", "e.g. 2.5 or T20"),
+        ("--tip", "Screw/bolt end: flat (machine thread, default) or point (wood, self-tapping)"),
         ("--variant", "Nut/washer/standoff variant, e.g. nyloc, spring, male-female"),
         ("--pitch", "Thread pitch in mm (for fine threads)"),
         ("--diameter", "Outer diameter in mm (washers, inserts)"),
@@ -1172,6 +1272,10 @@ def main():
         ("--note", "Short extra line on the label"),
     ):
         hw_parser.add_argument(flag, help=help_text)
+    hw_parser.add_argument(
+        "--lang", choices=sorted(HW_TEXT), default=config.get("language", HW_DEFAULT_LANG),
+        help=f"Label language (default: language in config, or {HW_DEFAULT_LANG})",
+    )
     hw_parser.add_argument("--output", "-o", default=None, help="Output filename")
     hw_parser.add_argument("--aml", action="store_true", default=default_aml,
                            help="Output in Labelife AML format instead of PNG")
@@ -1229,7 +1333,7 @@ def run_hardware(args, output_dir):
         hw = homebox_to_hardware(fetch_homebox_item(session, hb_url, args.item))
 
     # Flags override whatever Homebox returned
-    for key in ("type", "size", "length", "head", "drive", "drive_size", "variant",
+    for key in ("type", "size", "length", "head", "drive", "drive_size", "tip", "variant",
                 "pitch", "diameter", "material", "finish", "standard", "name", "note"):
         value = getattr(args, key)
         if value is not None:
@@ -1237,6 +1341,8 @@ def run_hardware(args, output_dir):
     if not hw.get("size"):
         print("Error: No size found; set a Size field in Homebox or pass --size", file=sys.stderr)
         sys.exit(1)
+
+    hw["lang"] = args.lang
 
     if args.qr_url:
         hw["url"] = args.qr_url
