@@ -10,5 +10,6 @@ use_logo = false      # use manufacturer logo instead of text brand name
 homebox_url = "http://localhost:7745"
 homebox_tag = "Hardware"     # only list items with this tag
 hardware_qr = "homebox"      # "homebox", "supplier" or "none"
+language = "nl"              # hardware label language: "nl" or "en"
 # Credentials come from the environment, not this file:
 #   HOMEBOX_TOKEN (API key), or HOMEBOX_USERNAME + HOMEBOX_PASSWORD
